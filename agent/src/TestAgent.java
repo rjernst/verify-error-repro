@@ -37,10 +37,9 @@ public class TestAgent {
 
                         // dup the instance ref, this is just to get a bad argument to the next method call
                         builder.dup();
-                        //builder.iconst_0();
 
                         // then call a check method that doesn't take that type, but we have the wrong desc
-                        builder.invokeinterface(checkerDesc, "check", MethodTypeDesc.of(ConstantDescs.CD_void, checkerDesc));
+                        builder.invokeinterface(checkerDesc, "check", MethodTypeDesc.of(ConstantDescs.CD_void, ConstantDescs.CD_Integer));
 
                         System.out.println("Done injecting bug");
                     }
@@ -70,12 +69,12 @@ public class TestAgent {
         // double check our class hasn't been loaded yet
         for (Class clazz : inst.getAllLoadedClasses()) {
             if (clazz.getName().equals(CLASS_TO_BREAK)) {
-                System.out.println("Oops! Class " + CLASS_TO_BREAK + " is already loaded, the test can't work");
+                throw new AssertionError("Oops! Class " + CLASS_TO_BREAK + " is already loaded, the test can't work");
             }
         }
 
-        boolean expectBug = false;
-        if (expectBug) {
+        boolean retransform = Boolean.getBoolean("agent.retransform");
+        if (retransform) {
             // for the bug the class we call must be already loaded, so that we retransform it
             var clazz = Class.forName(CLASS_TO_BREAK);
             inst.addTransformer(new BadTransformer(), true);
